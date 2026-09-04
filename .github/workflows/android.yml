@@ -52,4 +52,3 @@ jobs:
         with:
           name: pergamino-precios-debug
           path: PergaminoPrecios/app/build/outputs/apk/debug/*.apk
-          path: app/build/outputs/apk/debug/*.apk
