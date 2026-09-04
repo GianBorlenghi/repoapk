@@ -28,24 +28,13 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Generate Gradle wrapper
-        run: gradle wrapper --gradle-version 8.4
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Set up Gradle 8.4
+        uses: gradle/actions/setup-gradle@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('PergaminoPrecios/**/*.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          gradle-version: 8.4
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
