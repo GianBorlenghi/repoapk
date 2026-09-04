@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.PergaminoPrecios" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/teal</item>
+        <item name="colorPrimaryDark">@color/teal_dark</item>
+        <item name="colorAccent">@color/teal</item>
+    </style>
+</resources>
