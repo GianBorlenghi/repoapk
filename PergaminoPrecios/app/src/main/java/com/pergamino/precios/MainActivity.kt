@@ -41,6 +41,9 @@ class MainActivity : AppCompatActivity() {
     private val client = OkHttpClient()
     private val sugerencias = listOf("coca cola 2.25", "leche serenisima", "yerba amanda 1kg", "fideos lucchetti", "aceite 1.5", "paty")
     private lateinit var adapter: ProdAdapter
+    private lateinit var adapterPromos: PromoAdapter
+    private lateinit var adapterLista: ListaAdapter
+    private val listaSuper = mutableListOf<Producto>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,26 +53,64 @@ class MainActivity : AppCompatActivity() {
         val btnBuscar = findViewById<MaterialButton>(R.id.btnBuscar)
         val tvStatus = findViewById<TextView>(R.id.tvStatus)
         val rv = findViewById<RecyclerView>(R.id.rvResultados)
+        val rvPromos = findViewById<RecyclerView>(R.id.rvPromos)
+        val rvLista = findViewById<RecyclerView>(R.id.rvLista)
+        val layoutPromos = findViewById<View>(R.id.layoutPromos)
+        val layoutLista = findViewById<View>(R.id.layoutLista)
         val chipsBox = findViewById<ChipGroup>(R.id.chipsBox)
+        val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNav)
 
         sugerencias.forEach { txt ->
             val chip = Chip(this).apply {
                 text = txt
                 isCheckable = false
-                setOnClickListener { etQuery.setText(txt); buscar(txt, tvStatus) }
+                isClickable = true
+                isFocusable = true
+                chipBackgroundColor = getColorStateList(android.R.color.transparent)
+                setChipBackgroundColorResource(android.R.color.transparent)
+                setTextColor(getColor(R.color.teal))
+                chipStrokeColor = getColorStateList(R.color.teal)
+                chipStrokeWidth = 1.5f
+                setOnClickListener {
+                    etQuery.setText(txt)
+                    etQuery.setSelection(txt.length)
+                    buscar(txt, tvStatus)
+                }
             }
             chipsBox.addView(chip)
         }
+        // Hacer chips scrolleables y bien distribuidos
+        chipsBox.isSingleLine = true
+        chipsBox.chipSpacingHorizontal = 8f
 
-        adapter = ProdAdapter(emptyList()) { url ->
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-            } catch (e: Exception) {
-                // No hay app/navegador que resuelva el link, lo ignoramos
-            }
-        }
+        adapter = ProdAdapter(emptyList(), 
+            onLink = { url -> try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch {} },
+            onAgregar = { prod -> agregarALista(prod) }
+        )
         rv.layoutManager = LinearLayoutManager(this)
         rv.adapter = adapter
+
+        // Promos
+        adapterPromos = PromoAdapter(emptyList())
+        rvPromos.layoutManager = LinearLayoutManager(this)
+        rvPromos.adapter = adapterPromos
+        findViewById<MaterialButton>(R.id.btnActualizarPromos)?.setOnClickListener { cargarPromos() }
+
+        // Lista
+        adapterLista = ListaAdapter(listaSuper) { pos -> quitarDeLista(pos) }
+        rvLista.layoutManager = LinearLayoutManager(this)
+        rvLista.adapter = adapterLista
+        findViewById<MaterialButton>(R.id.btnVaciarLista)?.setOnClickListener { vaciarLista() }
+
+        // Navegación
+        bottomNav.setOnItemSelectedListener { item ->
+            when(item.itemId){
+                R.id.nav_comparar -> { rv.visibility=View.VISIBLE; layoutPromos.visibility=View.GONE; layoutLista.visibility=View.GONE; true }
+                R.id.nav_promos -> { rv.visibility=View.GONE; layoutPromos.visibility=View.VISIBLE; layoutLista.visibility=View.GONE; cargarPromos(); true }
+                R.id.nav_lista -> { rv.visibility=View.GONE; layoutPromos.visibility=View.GONE; layoutLista.visibility=View.VISIBLE; actualizarListaUI(); true }
+                else -> false
+            }
+        }
 
         btnBuscar.setOnClickListener {
             val q = etQuery.text.toString().trim()
@@ -98,6 +139,87 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ── Lista de supermercado ──
+    private fun agregarALista(p: Producto){
+        listaSuper.add(p)
+        actualizarListaUI()
+        val bottomNav=findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNav)
+        // Feedback
+        android.widget.Toast.makeText(this, "${p.nombre.take(30)} agregado a ${p.supermercado}", android.widget.Toast.LENGTH_SHORT).show()
+    }
+    private fun quitarDeLista(pos:Int){
+        if(pos in listaSuper.indices){
+            listaSuper.removeAt(pos)
+            actualizarListaUI()
+        }
+    }
+    private fun vaciarLista(){
+        listaSuper.clear()
+        actualizarListaUI()
+    }
+    private fun actualizarListaUI(){
+        val tvVacia=findViewById<TextView>(R.id.tvListaVacia)
+        val tvTotal=findViewById<TextView>(R.id.tvTotalLista)
+        tvVacia.visibility=if(listaSuper.isEmpty()) View.VISIBLE else View.GONE
+        adapterLista.update(listaSuper.toList())
+        if(listaSuper.isNotEmpty()){
+            val total=listaSuper.sumOf{it.precio}
+            val porSuper=listaSuper.groupBy{it.supermercado}.map{ (k,v) -> "$k: ${v.size} prod." }.joinToString(" • ")
+            tvTotal.text="Total: ${formatear(total)} • $porSuper"
+            // Mostrar super de cada producto en la lista ya está en el adapter
+        } else {
+            tvTotal.text=""
+        }
+    }
+
+    // ── Promos dinámicas ──
+    private fun cargarPromos(){
+        val tvStatus=findViewById<TextView>(R.id.tvPromosStatus)
+        tvStatus.text="Cargando promos bancarias..."
+        lifecycleScope.launch{
+            val promos=withContext(Dispatchers.IO){ obtenerPromosBancarias() }
+            adapterPromos.update(promos)
+            tvStatus.text="Promos vigentes • ${promos.size} supers"
+        }
+    }
+    private fun obtenerPromosBancarias(): List<PromoBanco>{
+        // Estáticas + dinámicas extraídas de la API (clusters con cencopay/csi)
+        val estaticas=mapOf(
+            "MasOnline" to listOf("Cencopay 25% + 3 CSI — Todos los días (Tope \$8.000)","BNA 30% MODO — Miércoles","Naranja X 3 cuotas — >\$40k"),
+            "VEA" to listOf("Cencopay 25% + 3 CSI — Todos los días","Galicia 20% — Jueves","BBVA 15% + 3 CSI — Viernes","BNA 30% MODO — Miércoles"),
+            "Carrefour" to listOf("Mi Carrefour 15% + 3 CSI — Todos los días","BNA 30% MODO — Miércoles","Macro 20% MODO — Miércoles","Santander 25% Visa MODO — Viernes")
+        )
+        val res=mutableListOf<PromoBanco>()
+        for((superN, promos) in estaticas){
+            // Intentar agregar dinámicas: buscar un query genérico y extraer clusters de pago
+            val dinamicas=mutableSetOf<String>()
+            try{
+                val url="https://www.${if(superN=="MasOnline") "masonline" else superN.lowercase()}.com.ar/api/catalog_system/pub/products/search?ft=leche&_from=0&_to=5"
+                val req=okhttp3.Request.Builder().url(url).header("User-Agent","Mozilla/5.0").build()
+                val resp=client.newCall(req).execute()
+                if(resp.isSuccessful){
+                    val arr=org.json.JSONArray(resp.body?.string() ?: "[]")
+                    for(i in 0 until minOf(arr.length(), 3)){
+                        val prod=arr.optJSONObject(i)?:continue
+                        val clusters=mutableListOf<String>()
+                        prod.optJSONObject("productClusters")?.keys()?.forEach{ k-> clusters.add(prod.getJSONObject("productClusters").optString(k)) }
+                        prod.optJSONObject("clusterHighlights")?.keys()?.forEach{ k-> clusters.add(prod.getJSONObject("clusterHighlights").optString(k)) }
+                        for(c in clusters){
+                            val low=c.lowercase()
+                            if(listOf("cencopay","csi","cuotas","cuota","banco","tarjeta").any{low.contains(it)} && c.length<80 && !low.contains("colection")){
+                                dinamicas.add(c.trim())
+                            }
+                        }
+                    }
+                }
+            }catch{}
+            val todas=(promos + dinamicas.take(2)).distinct().take(4)
+            res.add(PromoBanco(superN, todas))
+        }
+        return res
+    }
+    data class PromoBanco(val superNombre:String, val promos:List<String>)
+
     private fun formatear(v: Double): String {
         return NumberFormat.getCurrencyInstance(Locale("es", "AR")).format(v).replace("ARS", "$").trim()
     }
@@ -125,7 +247,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buscarEnSuper(superN: String, tpl: String, query: String, terminos: List<String>): List<Producto> {
-        val url = tpl.replace("{q}", URLEncoder.encode(query, "UTF-8"))
+        val url = tpl.replace("{q}", URLEncoder.encode(query, "UTF-8").replace("+", "%20"))
         return try {
             val req = Request.Builder().url(url).header("User-Agent", "Mozilla/5.0").header("Accept", "application/json").build()
             val res = client.newCall(req).execute()
@@ -212,30 +334,78 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    inner class ProdAdapter(var items: List<Producto>, val onLink: (String) -> Unit) : RecyclerView.Adapter<ProdAdapter.VH>() {
+    inner class ProdAdapter(var items: List<Producto>, val onLink: (String) -> Unit, val onAgregar: (Producto) -> Unit) : RecyclerView.Adapter<ProdAdapter.VH>() {
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
             val tvNombre = v.findViewById<TextView>(R.id.tvNombre)
             val tvPrecio = v.findViewById<TextView>(R.id.tvPrecio)
             val tvPromo = v.findViewById<TextView>(R.id.tvPromo)
             val img = v.findViewById<ImageView>(R.id.imgProducto)
             val tvLink = v.findViewById<TextView>(R.id.tvLink)
+            val btnAgregar = v.findViewById<View>(R.id.btnAgregar) ?: v.findViewById(R.id.tvLink) // fallback si no existe
         }
-
         override fun onCreateViewHolder(p: ViewGroup, t: Int) = VH(LayoutInflater.from(p.context).inflate(R.layout.item_producto, p, false))
         override fun getItemCount() = items.size
         override fun onBindViewHolder(h: VH, pos: Int) {
             val p = items[pos]
             h.tvNombre.text = p.nombre.take(48)
-            h.tvPrecio.text = "💲 ${p.precioStr}"
+            h.tvPrecio.text = "💲 ${p.precioStr} • ${p.supermercado}"
             h.tvPromo.text = p.promos.joinToString(" • ").take(80)
             h.tvPromo.visibility = if (p.promos.isEmpty()) View.GONE else View.VISIBLE
             h.tvLink.setOnClickListener { onLink(p.url) }
+            // Botón agregar si existe
+            try{ h.itemView.findViewById<View>(R.id.btnAgregar)?.setOnClickListener{ onAgregar(p) } }catch{}
+            // También click largo agrega
+            h.itemView.setOnLongClickListener{ onAgregar(p); true }
             if (p.imagen.isNotBlank()) Glide.with(h.itemView).load(p.imagen).into(h.img)
         }
+        fun update(n: List<Producto>) { items = n; notifyDataSetChanged() }
+    }
 
-        fun update(n: List<Producto>) {
-            items = n
-            notifyDataSetChanged()
+    inner class PromoAdapter(var items: List<PromoBanco>) : RecyclerView.Adapter<PromoAdapter.VH>(){
+        inner class VH(v:View):RecyclerView.ViewHolder(v){
+            val tvSuper=v.findViewById<TextView>(R.id.tvSuper)
+            val tvCount=v.findViewById<TextView>(R.id.tvCount)
+            val tv1=v.findViewById<TextView>(R.id.tvPromo1)
+            val tv2=v.findViewById<TextView>(R.id.tvPromo2)
+            val tv3=v.findViewById<TextView>(R.id.tvPromo3)
         }
+        override fun onCreateViewHolder(p:ViewGroup,t:Int)=VH(LayoutInflater.from(p.context).inflate(R.layout.item_promo,p,false))
+        override fun getItemCount()=items.size
+        override fun onBindViewHolder(h:VH, pos:Int){
+            val p=items[pos]
+            h.tvSuper.text="🏦 ${p.superNombre}"
+            h.tvCount.text="${p.promos.size} promos"
+            h.tv1.text = p.promos.getOrNull(0) ?: ""
+            h.tv2.text = p.promos.getOrNull(1) ?: ""
+            h.tv3.text = p.promos.getOrNull(2) ?: ""
+            h.tv1.visibility=if(p.promos.size>0) View.VISIBLE else View.GONE
+            h.tv2.visibility=if(p.promos.size>1) View.VISIBLE else View.GONE
+            h.tv3.visibility=if(p.promos.size>2) View.VISIBLE else View.GONE
+        }
+        fun update(n:List<PromoBanco>){ items=n; notifyDataSetChanged() }
+    }
+
+    inner class ListaAdapter(var items:List<Producto>, val onQuitar:(Int)->Unit):RecyclerView.Adapter<ListaAdapter.VH>(){
+        inner class VH(v:View):RecyclerView.ViewHolder(v){
+            val tvNombre=v.findViewById<TextView>(R.id.tvNombreLista)
+            val tvSuper=v.findViewById<TextView>(R.id.tvSuperLista)
+            val tvPrecio=v.findViewById<TextView>(R.id.tvPrecioLista)
+            val img=v.findViewById<ImageView>(R.id.imgLista)
+            val btn=v.findViewById<View>(R.id.btnQuitar)
+        }
+        override fun onCreateViewHolder(p:ViewGroup,t:Int)=VH(LayoutInflater.from(p.context).inflate(R.layout.item_lista,p,false))
+        override fun getItemCount()=items.size
+        override fun onBindViewHolder(h:VH, pos:Int){
+            val p=items[pos]
+            h.tvNombre.text=p.nombre.take(40)
+            h.tvSuper.text=p.supermercado
+            // Color por super
+            val col=when(p.supermercado){ "MasOnline"->0xFF1565C0.toInt(); "VEA"->0xFFC62828.toInt(); else->0xFF0D47A1.toInt() }
+            h.tvSuper.setBackgroundColor(col)
+            h.tvPrecio.text=p.precioStr
+            if(p.imagen.isNotBlank()) Glide.with(h.itemView).load(p.imagen).into(h.img)
+            h.btn.setOnClickListener{ onQuitar(pos) }
+        }
+        fun update(n:List<Producto>){ items=n; notifyDataSetChanged() }
     }
 }

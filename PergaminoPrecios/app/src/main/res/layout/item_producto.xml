@@ -54,13 +54,33 @@
                 android:background="#FFF8E1"
                 android:padding="3dp" />
 
-            <TextView
-                android:id="@+id/tvLink"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Ver en tienda"
-                android:textSize="11sp"
-                android:textColor="#00796B" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+
+                <TextView
+                    android:id="@+id/tvLink"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Ver en tienda"
+                    android:textSize="11sp"
+                    android:textColor="#00796B" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAgregar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:text="Agregar"
+                    android:textSize="11sp"
+                    app:icon="@android:drawable/ic_input_add"
+                    app:iconSize="14dp"
+                    app:cornerRadius="12dp"
+                    style="@style/Widget.Material3.Button.TonalButton" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

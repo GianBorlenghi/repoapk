@@ -2,4 +2,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/nav_comparar" android:title="Comparar" android:icon="@android:drawable/ic_search_category_default" />
     <item android:id="@+id/nav_promos" android:title="Promos" android:icon="@android:drawable/ic_menu_sort_by_size" />
+    <item android:id="@+id/nav_lista" android:title="Mi Lista" android:icon="@android:drawable/ic_menu_agenda" />
 </menu>

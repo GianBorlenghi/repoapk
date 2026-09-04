@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:id="@+id/viewColor"
+                android:layout_width="4dp"
+                android:layout_height="22dp"
+                android:background="#00796B" />
+
+            <TextView
+                android:id="@+id/tvSuper"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="🏦 MasOnline"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3 promos"
+                android:textSize="11sp"
+                android:textColor="#6B7280" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="#F3F4F6" />
+
+        <TextView
+            android:id="@+id/tvPromo1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="• Cencopay: 25% + 3 CSI"
+            android:textSize="12sp"
+            android:paddingTop="6dp" />
+
+        <TextView
+            android:id="@+id/tvPromo2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:paddingTop="2dp" />
+
+        <TextView
+            android:id="@+id/tvPromo3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:paddingTop="2dp" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

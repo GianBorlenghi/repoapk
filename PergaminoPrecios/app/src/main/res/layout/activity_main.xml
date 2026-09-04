@@ -85,13 +85,107 @@
             android:paddingTop="6dp" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvResultados"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="12dp"
-        android:clipToPadding="false" />
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvResultados"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="12dp"
+            android:clipToPadding="false" />
+
+        <LinearLayout
+            android:id="@+id/layoutPromos"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/tvPromosStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tocá Actualizar para ver promos vigentes"
+                android:textSize="11sp"
+                android:textColor="#6B7280"
+                android:gravity="center"
+                android:padding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnActualizarPromos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Actualizar promos bancarias"
+                app:cornerRadius="12dp"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPromos"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutLista"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="12dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🛒 Mi Lista de Supermercado"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#00796B"
+                android:gravity="center"
+                android:padding="8dp" />
+
+            <TextView
+                android:id="@+id/tvListaVacia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tu lista está vacía.\nAgregá productos desde Comparar."
+                android:textSize="13sp"
+                android:textColor="#6B7280"
+                android:gravity="center"
+                android:padding="16dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvLista"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false" />
+
+            <TextView
+                android:id="@+id/tvTotalLista"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#00796B"
+                android:gravity="center"
+                android:padding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVaciarLista"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Vaciar lista"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="@color/teal" />
+        </LinearLayout>
+    </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
