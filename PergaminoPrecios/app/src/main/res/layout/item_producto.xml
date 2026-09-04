@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:ellipsize="end" />
 
             <TextView
@@ -74,12 +74,15 @@
                     android:id="@+id/btnAgregar"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
-                    android:text="Agregar"
+                    android:text="Agregar a lista"
                     android:textSize="11sp"
+                    android:textColor="@android:color/white"
                     app:icon="@android:drawable/ic_input_add"
                     app:iconSize="14dp"
+                    app:iconTint="@android:color/white"
                     app:cornerRadius="12dp"
-                    style="@style/Widget.Material3.Button.TonalButton" />
+                    android:backgroundTint="#00796B"
+                    style="@style/Widget.Material3.Button.ElevatedButton" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

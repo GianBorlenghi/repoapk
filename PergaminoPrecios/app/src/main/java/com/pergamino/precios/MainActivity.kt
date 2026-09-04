@@ -91,12 +91,38 @@ class MainActivity : AppCompatActivity() {
         rvLista.adapter = adapterLista
         findViewById<MaterialButton>(R.id.btnVaciarLista)?.setOnClickListener { vaciarLista() }
 
-        // Navegación
+        // Navegación - ocultar buscador cuando no está en comparar
+        val searchCard = findViewById<View>(R.id.searchCard)
+        val tvStatusTop = findViewById<TextView>(R.id.tvStatus)
+        // Asegurar que tvStatus también se oculte con el buscador
         bottomNav.setOnItemSelectedListener { item ->
             when(item.itemId){
-                R.id.nav_comparar -> { rv.visibility=View.VISIBLE; layoutPromos.visibility=View.GONE; layoutLista.visibility=View.GONE; true }
-                R.id.nav_promos -> { rv.visibility=View.GONE; layoutPromos.visibility=View.VISIBLE; layoutLista.visibility=View.GONE; cargarPromos(); true }
-                R.id.nav_lista -> { rv.visibility=View.GONE; layoutPromos.visibility=View.GONE; layoutLista.visibility=View.VISIBLE; actualizarListaUI(); true }
+                R.id.nav_comparar -> {
+                    searchCard.visibility=View.VISIBLE
+                    tvStatusTop.visibility=View.VISIBLE
+                    rv.visibility=View.VISIBLE
+                    layoutPromos.visibility=View.GONE
+                    layoutLista.visibility=View.GONE
+                    true
+                }
+                R.id.nav_promos -> {
+                    searchCard.visibility=View.GONE
+                    tvStatusTop.visibility=View.GONE
+                    rv.visibility=View.GONE
+                    layoutPromos.visibility=View.VISIBLE
+                    layoutLista.visibility=View.GONE
+                    cargarPromos()
+                    true
+                }
+                R.id.nav_lista -> {
+                    searchCard.visibility=View.GONE
+                    tvStatusTop.visibility=View.GONE
+                    rv.visibility=View.GONE
+                    layoutPromos.visibility=View.GONE
+                    layoutLista.visibility=View.VISIBLE
+                    actualizarListaUI()
+                    true
+                }
                 else -> false
             }
         }
