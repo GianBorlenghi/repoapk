@@ -7,6 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: PergaminoPrecios
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,7 +40,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('PergaminoPrecios/**/*.gradle*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -47,4 +51,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pergamino-precios-debug
+          path: PergaminoPrecios/app/build/outputs/apk/debug/*.apk
           path: app/build/outputs/apk/debug/*.apk
