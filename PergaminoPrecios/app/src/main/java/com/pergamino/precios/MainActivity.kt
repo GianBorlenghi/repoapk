@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         adapter = ProdAdapter(emptyList(), 
-            onLink = { url -> try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch {} },
+            onLink = { url -> try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (e: Exception) {} },
             onAgregar = { prod -> agregarALista(prod) }
         )
         rv.layoutManager = LinearLayoutManager(this)
@@ -201,7 +201,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-            }catch{}
+            }catch (e: Exception) {}
             val todas=(promos + dinamicas.take(2)).distinct().take(4)
             res.add(PromoBanco(superN, todas))
         }
@@ -342,7 +342,7 @@ class MainActivity : AppCompatActivity() {
             h.tvPromo.visibility = if (p.promos.isEmpty()) View.GONE else View.VISIBLE
             h.tvLink.setOnClickListener { onLink(p.url) }
             // Botón agregar si existe
-            try{ h.itemView.findViewById<View>(R.id.btnAgregar)?.setOnClickListener{ onAgregar(p) } }catch{}
+            try{ h.itemView.findViewById<View>(R.id.btnAgregar)?.setOnClickListener{ onAgregar(p) } }catch (e: Exception) {}
             // También click largo agrega
             h.itemView.setOnLongClickListener{ onAgregar(p); true }
             if (p.imagen.isNotBlank()) Glide.with(h.itemView).load(p.imagen).into(h.img)
